@@ -258,15 +258,15 @@ $('guess').onclick=()=>{
 };
 function hint(g,t,sim){
   const [h1,s1,l1]=hex2hsl(g),[h2,s2,l2]=hex2hsl(t);
+  const dh=((h2-h1+540)%360)-180;
   if(sim<WARN){
-    if(s2>8&&s1>8){let dh=((h2-h1+540)%360)-180;return `色相錯誤：目前色相${dh>0?'增加':'減少'}約 ${Math.round(Math.abs(dh))}° 會更接近。`}
+    if(s2>8&&s1>8)return `色相錯誤：目前色相${dh>0?'增加':'減少'}約 ${Math.round(Math.abs(dh))}° 會更接近。`;
     return '色相錯誤，差距很大，再換個方向試試。';
   }
   const p=[];
   if(Math.abs(l2-l1)>8)p.push(l2>l1?'明度再亮一點':'明度再暗一點');
   if(Math.abs(s2-s1)>10)p.push(s2>s1?'飽和度再高一點':'飽和度再低一點');
-  const dh=((h2-h1+540)%360)-180;
-  if(s2>8&&Math.abs(dh)>12)p.push('色相還有偏差');
+  if(s2>8&&Math.abs(dh)>12)p.push(`色相${dh>0?'增加':'減少'}約 ${Math.round(Math.abs(dh))}°`);
   return p.length?'接近中：'+p.join('、')+'。':'很接近了，再微調一下。';
 }
 
