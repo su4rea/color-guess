@@ -259,7 +259,8 @@ $('guess').onclick=()=>{
 function hint(g,t,sim){
   const [h1,s1,l1]=hex2hsl(g),[h2,s2,l2]=hex2hsl(t);
   if(sim<WARN){
-    if(s2>8&&s1>8){let dh=((h2-h1+540)%360)-180;return `色相錯誤：目前色相${dh>0?'增加':'減少'}約 ${Math.round(Math.abs(dh))}° 會更接近。`}
+    if(s2>8&&s1>8){let dh=((h2-h1+540)%360)-180;
+    return `色相錯誤：目前色相${dh>0?'增加':'減少'}約 ${Math.round(Math.abs(dh))}° 會更接近。`;
   }
   const p=[];
   if(Math.abs(l2-l1)>8)p.push(l2>l1?'明度再亮一點':'明度再暗一點');
