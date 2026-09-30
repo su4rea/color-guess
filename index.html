@@ -177,13 +177,13 @@ function show(id){['setup','play','win','rank'].forEach(k=>$(k).classList.toggle
 
 /* ---------- 出題 ---------- */
 function startRound(hex){
-  cur={target:hex,attempts:0,log:[],hinted:false};resetHelpers();
+  cur={target:hex,attempts:0,guesses:0,log:[],hinted:false};resetHelpers();
   $('qn2').textContent=rounds.length+1;$('cnt').textContent=0;$('log').innerHTML='';
   $('sim').textContent='--';$('bar').style.width='0';$('msg').textContent='選好顏色後按「送出」。';
   hideTarget();setPick('#808080');show('play');
 }
 function resetHelpers(){['helpers','hintbtn','swapbtn','hintout','dim'].forEach(k=>$(k).classList.add('hidden'));$('hintout').textContent=''}
-function updateBtns(){const a=cur.attempts;
+function updateBtns(){const a=cur.guesses;
   $('hintbtn').classList.toggle('hidden',!(a>=10&&!cur.hinted));
   $('swapbtn').classList.toggle('hidden',!(a>=15));
   $('helpers').classList.toggle('hidden',$('hintbtn').classList.contains('hidden')&&$('swapbtn').classList.contains('hidden'))}
@@ -245,7 +245,7 @@ $('peek').onclick=()=>{if(peeking){hideTarget();return}
 /* ---------- 猜測 ---------- */
 $('guess').onclick=()=>{
   const g=$('mine').textContent,sim=similarity(g,cur.target);
-  cur.attempts++;cur.log.push({g,sim});$('cnt').textContent=cur.attempts;updateBtns();
+  cur.attempts++;cur.guesses++;cur.log.push({g,sim});$('cnt').textContent=cur.attempts;updateBtns();
   $('sim').textContent=sim.toFixed(1)+'%';$('bar').style.width=sim+'%';
   const d=document.createElement('div');d.innerHTML=`<span class="dot" style="background:${g}"></span>第 ${cur.attempts} 次　${g}　${sim.toFixed(1)}%`;
   $('log').prepend(d);
@@ -260,13 +260,13 @@ function hint(g,t,sim){
   const [h1,s1,l1]=hex2hsl(g),[h2,s2,l2]=hex2hsl(t);
   const dh=((h2-h1+540)%360)-180;
   if(sim<WARN){
-    if(s2>8&&s1>8)return `色相錯誤：目前色相${dh>0?'增加':'減少'}約 ${Math.round(Math.abs(dh))}° 會更接近。`;
-    return '色相錯誤，差距很大，再換個方向試試。';
+    if(s2>8)return '色相錯誤：差距很大，換個色相區域再試。';
+    return '差距很大：目標接近灰階，請調低飽和度並注意明度。';
   }
   const p=[];
   if(Math.abs(l2-l1)>8)p.push(l2>l1?'明度再亮一點':'明度再暗一點');
   if(Math.abs(s2-s1)>10)p.push(s2>s1?'飽和度再高一點':'飽和度再低一點');
-  if(s2>8&&Math.abs(dh)>12&&sim<=40)p.push(`色相${dh>0?'增加':'減少'}約 ${Math.round(Math.abs(dh))}°`);
+  if(s2>8&&s1>8&&Math.abs(dh)>12&&sim<=70)p.push('色相還有偏差');
   return p.length?'接近中：'+p.join('、')+'。':'很接近了，再微調一下。';
 }
 
