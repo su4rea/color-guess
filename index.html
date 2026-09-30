@@ -68,8 +68,8 @@ table.info td:first-child{color:var(--mute);width:6em}
 </head>
 <body>
 <main>
-<h1>猜色遊戲 1A2B</h1>
-<p class="sub">台下喊 HEX，台上憑聽到的代碼調出顏色，相似度 ≥ 90% 過關。</p>
+<h1>猜色遊戲 1A2B(Palette ver.)</h1>
+<p class="sub">台下喊HEX代碼後，台上憑聽到的代碼調出顏色，相似度 ≥ 90% 過關。</p>
 
 <!-- 出題 -->
 <section id="setup">
@@ -91,7 +91,7 @@ table.info td:first-child{color:var(--mute);width:6em}
     <div class="t" id="tgt">目標色隱藏中</div>
     <div id="mine" style="background:#808080">你的選色</div>
   </div>
-  <div class="seg" style="margin-top:12px"><button id="m1">拉桿模式</button><button class="ghost" id="m2">HEX 大方格模式</button></div>
+  <div class="seg" style="margin-top:12px"><button id="m1">拉桿模式</button><button class="ghost" id="m2">HEX 模式</button></div>
   <div class="pick">
     <div class="wrap"><div class="wheel" id="wheel" aria-label="色相環，點選或拖曳"></div><div class="dim hidden" id="dim"></div><div class="mk" id="mk"></div><div class="deg" id="deg">0°</div></div>
     <div class="sl" id="sliders">
@@ -127,7 +127,7 @@ table.info td:first-child{color:var(--mute);width:6em}
 
 <!-- 過關 -->
 <section id="win" class="hidden">
-  <h2 class="pass">過關！</h2>
+  <h2 class="pass">恭喜過關！</h2>
   <p id="winmsg"></p>
   <div id="info"></div>
   <div class="row">
