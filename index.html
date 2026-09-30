@@ -56,6 +56,11 @@ background:conic-gradient(from 0deg,hsl(0 100% 50%),hsl(60 100% 50%),hsl(120 100
 #sq i{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1.5px #000;pointer-events:none}
 .axis{display:flex;justify-content:space-between;max-width:220px;font-size:.78rem;color:var(--mute);margin-top:4px}
 .seg{display:flex;gap:8px;flex-wrap:wrap}
+#modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:20px}
+#modal .box{background:var(--card);color:var(--ink);border-radius:14px;padding:20px;max-width:380px;width:100%}
+#modal p{margin:0 0 16px}
+.wrap .dim{position:absolute;inset:0;border-radius:50%;pointer-events:none;-webkit-mask:radial-gradient(circle,transparent 50%,#000 51%);mask:radial-gradient(circle,transparent 50%,#000 51%)}
+.dnf{color:var(--bad);font-weight:700}
 table.info td:first-child{color:var(--mute);width:6em}
 .pass{color:var(--ok)}
 .tag{display:inline-block;padding:2px 8px;border:1px solid var(--line);border-radius:20px;font-size:.8rem;color:var(--mute)}
@@ -64,7 +69,7 @@ table.info td:first-child{color:var(--mute);width:6em}
 <body>
 <main>
 <h1>猜色遊戲 1A2B</h1>
-<p class="sub">台下喊出HEX代碼後，台上憑聽到的代碼調出顏色，相似度 ≥ 90% 過關。</p>
+<p class="sub">台下喊 HEX，台上憑聽到的代碼調出顏色，相似度 ≥ 90% 過關。</p>
 
 <!-- 出題 -->
 <section id="setup">
@@ -76,7 +81,7 @@ table.info td:first-child{color:var(--mute);width:6em}
     <button class="ghost" id="setc">指定此色出題</button>
   </div>
   <p class="hint" id="setmsg"></p>
-  <button class="ghost" id="finish0">結束遊戲並查看排名</button>
+  <button class="ghost" id="finish0">結束遊戲並看排名</button>
 </section>
 
 <!-- 作答 -->
@@ -86,9 +91,9 @@ table.info td:first-child{color:var(--mute);width:6em}
     <div class="t" id="tgt">目標色隱藏中</div>
     <div id="mine" style="background:#808080">你的選色</div>
   </div>
-  <div class="seg" style="margin-top:12px"><button id="m1">拉桿模式</button><button class="ghost" id="m2">HEX模式</button></div>
+  <div class="seg" style="margin-top:12px"><button id="m1">拉桿模式</button><button class="ghost" id="m2">HEX 大方格模式</button></div>
   <div class="pick">
-    <div class="wrap"><div class="wheel" id="wheel" aria-label="色相環，點選或拖曳"></div><div class="mk" id="mk"></div><div class="deg" id="deg">0°</div></div>
+    <div class="wrap"><div class="wheel" id="wheel" aria-label="色相環，點選或拖曳"></div><div class="dim hidden" id="dim"></div><div class="mk" id="mk"></div><div class="deg" id="deg">0°</div></div>
     <div class="sl" id="sliders">
     <label class="s">色相<input type="range" id="h" min="0" max="360" value="0"><span id="hv">0°</span></label>
     <div class="ticks"><span>0°紅</span><span>60°黃</span><span>120°綠</span><span>180°青</span><span>240°藍</span><span>300°洋紅</span><span>360°</span></div>
@@ -112,6 +117,11 @@ table.info td:first-child{color:var(--mute);width:6em}
     <div class="meter"><i id="bar"></i></div>
     <div class="hint" id="msg">選好顏色後按「送出」。</div>
   </div>
+  <div class="row hidden" id="helpers" style="margin-top:10px">
+    <button class="ghost hidden" id="hintbtn">更多提示</button>
+    <button class="ghost hidden" id="swapbtn">換個顏色</button>
+  </div>
+  <p class="hint hidden" id="hintout"></p>
   <div class="log" id="log"></div>
 </section>
 
@@ -137,6 +147,8 @@ table.info td:first-child{color:var(--mute);width:6em}
   <button id="again">重新開始</button>
 </section>
 </main>
+<div id="modal" class="hidden" role="dialog" aria-modal="true"><div class="box"><p id="mtext"></p>
+  <div class="row"><button id="mok">確定</button><button class="ghost" id="mno">再試一下</button></div></div></div>
 
 <script>
 const $=id=>document.getElementById(id);
@@ -165,11 +177,30 @@ function show(id){['setup','play','win','rank'].forEach(k=>$(k).classList.toggle
 
 /* ---------- 出題 ---------- */
 function startRound(hex){
-  cur={target:hex,attempts:0,log:[]};
+  cur={target:hex,attempts:0,log:[],hinted:false};resetHelpers();
   $('qn2').textContent=rounds.length+1;$('cnt').textContent=0;$('log').innerHTML='';
   $('sim').textContent='--';$('bar').style.width='0';$('msg').textContent='選好顏色後按「送出」。';
   hideTarget();setPick('#808080');show('play');
 }
+function resetHelpers(){['helpers','hintbtn','swapbtn','hintout','dim'].forEach(k=>$(k).classList.add('hidden'));$('hintout').textContent=''}
+function updateBtns(){const a=cur.attempts;
+  $('hintbtn').classList.toggle('hidden',!(a>10&&!cur.hinted));
+  $('swapbtn').classList.toggle('hidden',!(a>15));
+  $('helpers').classList.toggle('hidden',$('hintbtn').classList.contains('hidden')&&$('swapbtn').classList.contains('hidden'))}
+function ask(text,cb){$('mtext').innerHTML=text;$('modal').classList.remove('hidden');
+  $('mok').onclick=()=>{$('modal').classList.add('hidden');cb()};$('mno').onclick=()=>$('modal').classList.add('hidden')}
+$('hintbtn').onclick=()=>ask('使用色相提示會<b>增加 5 次猜測次數</b>。確定要使用嗎？',()=>{
+  const [h,s]=hex2hsl(cur.target);cur.hinted=true;
+  if(s<8){$('hintout').textContent='目標是低彩度（接近灰階），色相不影響答案，請專注在明度與彩度。'}
+  else{cur.attempts+=5;$('cnt').textContent=cur.attempts;
+    const st=(Math.floor(h)-Math.floor(Math.random()*30)+360)%360,en=(st+30)%360;
+    $('hintout').textContent=`色相提示：目標色相在 ${st}° ～ ${en}° 之間（30° 區間）。已增加 5 次猜測次數。`;
+    $('dim').style.background=`conic-gradient(from ${st}deg,transparent 0deg 30deg,rgba(0,0,0,.72) 30deg 360deg)`;$('dim').classList.remove('hidden');
+    const d=document.createElement('div');d.textContent='使用色相提示　+5 次';$('log').prepend(d)}
+  $('hintout').classList.remove('hidden');updateBtns()});
+$('swapbtn').onclick=()=>ask('此題將在排行榜上被標記為 <b>DNF</b>，確定要換個顏色嗎？',()=>{
+  rounds.push({target:cur.target,attempts:cur.attempts,dnf:true});hideTarget();resetHelpers();
+  $('qn').textContent=rounds.length+1;$('setmsg').textContent='上一題已記為 DNF，請為下一題出題。';show('setup')});
 $('rand').onclick=()=>startRound(toHex(Math.random()*256,Math.random()*256,Math.random()*256));
 $('setc').onclick=()=>{const v=$('custom').value;if(!hexOK(v)){$('setmsg').textContent='HEX 格式需為 #RRGGBB（例：#3A7BD5）';return}
   $('setmsg').textContent='';startRound(norm(v));$('custom').value=''};
@@ -214,13 +245,13 @@ $('peek').onclick=()=>{if(peeking){hideTarget();return}
 /* ---------- 猜測 ---------- */
 $('guess').onclick=()=>{
   const g=$('mine').textContent,sim=similarity(g,cur.target);
-  cur.attempts++;cur.log.push({g,sim});$('cnt').textContent=cur.attempts;
+  cur.attempts++;cur.log.push({g,sim});$('cnt').textContent=cur.attempts;updateBtns();
   $('sim').textContent=sim.toFixed(1)+'%';$('bar').style.width=sim+'%';
   const d=document.createElement('div');d.innerHTML=`<span class="dot" style="background:${g}"></span>第 ${cur.attempts} 次　${g}　${sim.toFixed(1)}%`;
   $('log').prepend(d);
   if(sim>=PASS){
-    rounds.push({target:cur.target,attempts:cur.attempts});
-    $('winmsg').innerHTML=`目標色是 <b>${cur.target}</b>，你用了 <b>${cur.attempts}</b> 次猜中（${sim.toFixed(1)}%）。`;
+    rounds.push({target:cur.target,attempts:cur.attempts,hinted:cur.hinted});resetHelpers();
+    $('winmsg').innerHTML=`目標色是 <b>${cur.target}</b>，你用了 <b>${cur.attempts}</b> 次猜中（${sim.toFixed(1)}%）${cur.hinted?'，含色相提示 +5 次':''}。`;
     hideTarget();showInfo(cur.target,g);show('win');$('qn').textContent=rounds.length+1;return;
   }
   $('msg').textContent=hint(g,cur.target,sim);
@@ -252,12 +283,14 @@ function showInfo(t,g){const [r,gg,b]=toRGB(t),[h,s,l]=hex2hsl(t),k=1-Math.max(r
   <tr><td>你的最後選色</td><td><span class="dot" style="display:inline-block;vertical-align:middle;background:${g}"></span> ${g}</td></tr></table>`}
 $('next').onclick=()=>{$('setmsg').textContent='';show('setup')};
 function showRank(){
-  const list=rounds.map((r,i)=>({...r,q:i+1})).sort((a,b)=>a.attempts-b.attempts);
-  let rank=0,prev=null;
-  list.forEach((r,i)=>{if(r.attempts!==prev){rank=i+1;prev=r.attempts}r.rank=rank});
-  $('rows').innerHTML=list.length?list.map(r=>`<tr><td class="r">${r.rank}</td><td>第 ${r.q} 題</td><td><span class="dot" style="display:inline-block;vertical-align:middle;background:${r.target}"></span> ${r.target}</td><td>${r.attempts} 次</td></tr>`).join('')
-    :'<tr><td colspan="4" style="color:var(--mute)">還沒有完成任何題目。</td></tr>';
-  $('avg').textContent=list.length?`共 ${list.length} 題，平均 ${(list.reduce((a,b)=>a+b.attempts,0)/list.length).toFixed(1)} 次。次數越少名次越高，次數相同並列。`:'';
+  const ok=rounds.map((r,i)=>({...r,q:i+1})).filter(r=>!r.dnf).sort((a,b)=>a.attempts-b.attempts);
+  const bad=rounds.map((r,i)=>({...r,q:i+1})).filter(r=>r.dnf);
+  let rank=0,prev=null;ok.forEach((r,i)=>{if(r.attempts!==prev){rank=i+1;prev=r.attempts}r.rank=rank});
+  const dot=t=>`<span class="dot" style="display:inline-block;vertical-align:middle;background:${t}"></span> ${t}`;
+  const html=ok.map(r=>`<tr><td class="r">${r.rank}</td><td>第 ${r.q} 題</td><td>${dot(r.target)}</td><td>${r.attempts} 次${r.hinted?'（含提示 +5）':''}</td></tr>`)
+    .concat(bad.map(r=>`<tr><td class="dnf">DNF</td><td>第 ${r.q} 題</td><td>${dot(r.target)}</td><td>已猜 ${r.attempts} 次${r.hinted?'（含提示 +5）':''}</td></tr>`)).join('');
+  $('rows').innerHTML=html||'<tr><td colspan="4" style="color:var(--mute)">還沒有完成任何題目。</td></tr>';
+  $('avg').textContent=ok.length?`完成 ${ok.length} 題，平均 ${(ok.reduce((a,b)=>a+b.attempts,0)/ok.length).toFixed(1)} 次${bad.length?`；另有 ${bad.length} 題為 DNF，不列入名次與平均`:''}。次數越少名次越高，次數相同並列。`:(bad.length?`共 ${bad.length} 題 DNF。`:'');
   show('rank');
 }
 $('again').onclick=()=>{rounds=[];$('qn').textContent=1;show('setup')};
