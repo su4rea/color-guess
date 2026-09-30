@@ -266,6 +266,7 @@ function hint(g,t,sim){
   if(Math.abs(s2-s1)>10)p.push(s2>s1?'飽和度再高一點':'飽和度再低一點');
   const dh=((h2-h1+540)%360)-180;
   if(s2>8&&Math.abs(dh)>12)p.push(`色相${dh>0?'增加':'減少'}約 ${Math.round(Math.abs(dh))}°`);
+  return p.length?'接近中：'+p.join('、')+'。':'很接近了，再微調一下。';
 }
 
 /* ---------- 下一題 / 排名 ---------- */
