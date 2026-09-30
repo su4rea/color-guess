@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>猜色遊戲 1A2B（色彩版）</title>
+<style>
+:root{--bg:#e9e9ec;--card:#fff;--ink:#1c1c20;--mute:#6b6b74;--line:#d2d2d8;--ok:#1f8a4c;--bad:#c0392b;--btn:#1c1c20;--btnink:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17171a;--card:#222227;--ink:#f0f0f3;--mute:#9a9aa5;--line:#37373f;--ok:#4cc38a;--bad:#ff7b6b;--btn:#f0f0f3;--btnink:#17171a}}
+:root[data-theme="dark"]{--bg:#17171a;--card:#222227;--ink:#f0f0f3;--mute:#9a9aa5;--line:#37373f;--ok:#4cc38a;--bad:#ff7b6b;--btn:#f0f0f3;--btnink:#17171a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif}
+main{max-width:720px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:1.5rem;margin:8px 0 2px;letter-spacing:.02em}
+p.sub{color:var(--mute);margin:0 0 18px;font-size:.95rem}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px}
+h2{font-size:1.05rem;margin:0 0 10px}
+button{font:inherit;border:0;border-radius:10px;padding:10px 16px;background:var(--btn);color:var(--btnink);cursor:pointer}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+button:focus-visible,input:focus-visible{outline:3px solid #3b82f6;outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+input[type=text]{font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);width:9.5em;font-family:ui-monospace,Menlo,monospace}
+.pair{display:grid;grid-template-columns:1fr 1fr;height:150px;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+.pair div{display:flex;align-items:flex-end;padding:8px 10px;font-size:.85rem;font-family:ui-monospace,Menlo,monospace}
+.pair .t{background:repeating-linear-gradient(45deg,var(--line) 0 8px,var(--card) 8px 16px);color:var(--mute);align-items:center;justify-content:center;font-family:inherit}
+label.s{display:grid;grid-template-columns:3.2em 1fr 3em;gap:8px;align-items:center;margin:6px 0;color:var(--mute);font-size:.9rem}
+input[type=range]{width:100%}
+.meter{height:10px;border-radius:6px;background:var(--line);overflow:hidden;margin:8px 0 4px}
+.meter i{display:block;height:100%;background:var(--ink);width:0}
+.big{font-size:2rem;font-weight:700;line-height:1.1}
+.hint{color:var(--mute);min-height:1.6em}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line)}
+td.r{font-weight:700}
+.log{max-height:170px;overflow:auto;font-size:.9rem;color:var(--mute)}
+.log div{display:flex;gap:8px;align-items:center;padding:3px 0}
+.dot{width:16px;height:16px;border-radius:50%;border:1px solid var(--line);flex:none}
+.hidden{display:none!important}
+.pick{display:flex;gap:16px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.wheel{position:relative;width:132px;height:132px;flex:none;border-radius:50%;cursor:crosshair;touch-action:none;
+background:conic-gradient(from 0deg,hsl(0 100% 50%),hsl(60 100% 50%),hsl(120 100% 50%),hsl(180 100% 50%),hsl(240 100% 50%),hsl(300 100% 50%),hsl(360 100% 50%));
+-webkit-mask:radial-gradient(circle,transparent 50%,#000 51%);mask:radial-gradient(circle,transparent 50%,#000 51%)}
+.wrap{position:relative;width:132px;height:132px;flex:none}
+.wrap .wheel{position:absolute;inset:0}
+.wrap .mk{position:absolute;left:50%;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1.5px #000;pointer-events:none}
+.wrap .deg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.95rem;font-weight:700;pointer-events:none}
+.sl{flex:1;min-width:220px}
+#h{-webkit-appearance:none;appearance:none;height:14px;border-radius:7px;background:linear-gradient(90deg,hsl(0 100% 50%),hsl(60 100% 50%),hsl(120 100% 50%),hsl(180 100% 50%),hsl(240 100% 50%),hsl(300 100% 50%),hsl(360 100% 50%))}
+#h::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid #000}
+#h::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid #000}
+.ticks{display:flex;justify-content:space-between;font-size:.72rem;color:var(--mute);margin:0 0 4px 3.2em;padding-right:3em}
+.chip{height:120px;border-radius:12px;border:1px solid var(--line);display:flex;align-items:flex-end;padding:10px 12px;font:700 1.2rem ui-monospace,Menlo,monospace;margin-bottom:10px}
+#sq{position:relative;width:100%;max-width:220px;aspect-ratio:1;border-radius:10px;border:1px solid var(--line);cursor:crosshair;touch-action:none;background:linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,#f00)}
+#sq i{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1.5px #000;pointer-events:none}
+.axis{display:flex;justify-content:space-between;max-width:220px;font-size:.78rem;color:var(--mute);margin-top:4px}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+table.info td:first-child{color:var(--mute);width:6em}
+.pass{color:var(--ok)}
+.tag{display:inline-block;padding:2px 8px;border:1px solid var(--line);border-radius:20px;font-size:.8rem;color:var(--mute)}
+</style>
+</head>
+<body>
+<main>
+<h1>猜色遊戲 1A2B</h1>
+<p class="sub">台下喊 HEX，台上憑聽到的代碼調出顏色，相似度 ≥ 90% 過關。</p>
+
+<!-- 出題 -->
+<section id="setup">
+  <h2>第 <span id="qn">1</span> 題：出題</h2>
+  <div class="row">
+    <button id="rand">系統隨機出題</button>
+    <span style="color:var(--mute)">或</span>
+    <input type="text" id="custom" placeholder="#RRGGBB" maxlength="7" aria-label="指定 HEX">
+    <button class="ghost" id="setc">指定此色出題</button>
+  </div>
+  <p class="hint" id="setmsg"></p>
+  <button class="ghost" id="finish0">結束遊戲並看排名</button>
+</section>
+
+<!-- 作答 -->
+<section id="play" class="hidden">
+  <h2>第 <span id="qn2">1</span> 題 <span class="tag">已作答 <b id="cnt">0</b> 次</span></h2>
+  <div class="pair" aria-label="目標色與你的選色比較">
+    <div class="t" id="tgt">目標色隱藏中</div>
+    <div id="mine" style="background:#808080">你的選色</div>
+  </div>
+  <div class="seg" style="margin-top:12px"><button id="m1">拉桿模式</button><button class="ghost" id="m2">HEX 大方格模式</button></div>
+  <div class="pick">
+    <div class="wrap"><div class="wheel" id="wheel" aria-label="色相環，點選或拖曳"></div><div class="mk" id="mk"></div><div class="deg" id="deg">0°</div></div>
+    <div class="sl" id="sliders">
+    <label class="s">色相<input type="range" id="h" min="0" max="360" value="0"><span id="hv">0°</span></label>
+    <div class="ticks"><span>0°紅</span><span>60°黃</span><span>120°綠</span><span>180°青</span><span>240°藍</span><span>300°洋紅</span><span>360°</span></div>
+    <label class="s">飽和<input type="range" id="s" min="0" max="100" value="50"><span id="sv">50%</span></label>
+    <label class="s">明度<input type="range" id="l" min="0" max="100" value="50"><span id="lv">50%</span></label>
+    </div>
+    <div class="sl hidden" id="sqbox">
+      <div id="sq" aria-label="彩度與明度方格，點選或拖曳"><i id="sqm"></i></div>
+    </div>
+  </div>
+  <div>
+    <div class="row" style="margin-top:8px">
+      <input type="text" id="hex" maxlength="7" value="#BF4040" aria-label="你的 HEX">
+      <input type="color" id="native" value="#bf4040" aria-label="色彩選取器">
+      <button id="guess">送出</button>
+      <button class="ghost" id="peek">出題者：顯示目標</button>
+    </div>
+  </div>
+  <div style="margin-top:14px">
+    <div class="big"><span id="sim">--</span></div>
+    <div class="meter"><i id="bar"></i></div>
+    <div class="hint" id="msg">選好顏色後按「送出」。</div>
+  </div>
+  <div class="log" id="log"></div>
+</section>
+
+<!-- 過關 -->
+<section id="win" class="hidden">
+  <h2 class="pass">過關！</h2>
+  <p id="winmsg"></p>
+  <div id="info"></div>
+  <div class="row">
+    <button id="next">繼續下一題</button>
+    <button class="ghost" id="finish">離開遊戲</button>
+  </div>
+</section>
+
+<!-- 排名 -->
+<section id="rank" class="hidden">
+  <h2>各題作答次數與排名</h2>
+  <table>
+    <thead><tr><th>名次</th><th>題號</th><th>目標色</th><th>次數</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <p class="hint" id="avg"></p>
+  <button id="again">重新開始</button>
+</section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const PASS=90, WARN=30;
+let rounds=[], cur=null;
+
+/* ---------- 色彩工具 ---------- */
+function hexOK(s){return /^#?[0-9a-fA-F]{6}$/.test(s.trim())}
+function norm(s){s=s.trim().toUpperCase();return s[0]==='#'?s:'#'+s}
+function toRGB(h){return [1,3,5].map(i=>parseInt(h.substr(i,2),16))}
+function toHex(r,g,b){return '#'+[r,g,b].map(v=>Math.round(v).toString(16).padStart(2,'0')).join('').toUpperCase()}
+function hsl2hex(h,s,l){s/=100;l/=100;const a=s*Math.min(l,1-l);const f=n=>{const k=(n+h/30)%12;return l-a*Math.max(-1,Math.min(k-3,9-k,1))};return toHex(f(0)*255,f(8)*255,f(4)*255)}
+function hex2hsl(h){let [r,g,b]=toRGB(h).map(v=>v/255);const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn,l=(mx+mn)/2;let H=0,S=0;
+  if(d){S=d/(1-Math.abs(2*l-1));H=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;H=(H*60+360)%360}
+  return [H,S*100,l*100]}
+function lab(h){const c=toRGB(h).map(v=>{v/=255;return v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4)});
+  const X=(c[0]*.4124+c[1]*.3576+c[2]*.1805)/.95047, Y=c[0]*.2126+c[1]*.7152+c[2]*.0722, Z=(c[0]*.0193+c[1]*.1192+c[2]*.9505)/1.08883;
+  const f=t=>t>.008856?Math.cbrt(t):7.787*t+16/116;
+  return [116*f(Y)-16,500*(f(X)-f(Y)),200*(f(Y)-f(Z))]}
+// 相似度：CIE Lab 色差 ΔE（0 = 完全相同），相似度 = 100 - ΔE，ΔE≤10 即 ≥90%
+function similarity(a,b){const A=lab(a),B=lab(b);const dE=Math.hypot(A[0]-B[0],A[1]-B[1],A[2]-B[2]);return Math.max(0,100-dE)}
+function textOn(h){return lab(h)[0]>60?'#111':'#fff'}
+
+/* ---------- 畫面切換 ---------- */
+function show(id){['setup','play','win','rank'].forEach(k=>$(k).classList.toggle('hidden',k!==id))}
+
+/* ---------- 出題 ---------- */
+function startRound(hex){
+  cur={target:hex,attempts:0,log:[]};
+  $('qn2').textContent=rounds.length+1;$('cnt').textContent=0;$('log').innerHTML='';
+  $('sim').textContent='--';$('bar').style.width='0';$('msg').textContent='選好顏色後按「送出」。';
+  hideTarget();setPick('#808080');show('play');
+}
+$('rand').onclick=()=>startRound(toHex(Math.random()*256,Math.random()*256,Math.random()*256));
+$('setc').onclick=()=>{const v=$('custom').value;if(!hexOK(v)){$('setmsg').textContent='HEX 格式需為 #RRGGBB（例：#3A7BD5）';return}
+  $('setmsg').textContent='';startRound(norm(v));$('custom').value=''};
+$('finish0').onclick=$('finish').onclick=showRank;
+
+/* ---------- 選色 ---------- */
+function setPick(hex,hk){
+  let [h,s,l]=hex2hsl(hex);if(hk!==undefined&&s<1)h=hk;
+  $('h').value=h;$('s').value=s;$('l').value=l;$('hv').textContent=Math.round(h)+'°';$('sv').textContent=Math.round(s)+'%';$('lv').textContent=Math.round(l)+'%';
+  $('hex').value=hex;$('native').value=hex.toLowerCase();
+  {const [r,g,b]=toRGB(hex),mx=Math.max(r,g,b),mn=Math.min(r,g,b);const sv=mx?(mx-mn)/mx:0,vv=mx/255;
+   $('sq').style.background=`linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,hsl(${h} 100% 50%))`;
+   $('sqm').style.left=sv*100+'%';$('sqm').style.top=(1-vv)*100+'%'}
+  const a=h*Math.PI/180;$('mk').style.transform=`translate(${Math.sin(a)*57}px,${-Math.cos(a)*57}px)`;$('deg').textContent=Math.round(h)+'°';
+  const m=$('mine');m.style.background=hex;m.style.color=textOn(hex);m.textContent=hex;
+}
+['h','s','l'].forEach(k=>$(k).oninput=()=>setPick(hsl2hex(+$('h').value,+$('s').value,+$('l').value),+$('h').value));
+function wheelPick(e){const r=$('wheel').getBoundingClientRect();const dx=e.clientX-r.left-r.width/2,dy=e.clientY-r.top-r.height/2;
+  const h=(Math.atan2(dx,-dy)*180/Math.PI+360)%360;setPick(hsl2hex(h,+$('s').value,+$('l').value),h)}
+function hsv2hex(h,sv,v){const l=v*(1-sv/2);const sl=(l===0||l===1)?0:(v-l)/Math.min(l,1-l);return hsl2hex(h,sl*100,l*100)}
+function sqPick(e){const r=$('sq').getBoundingClientRect();
+  const x=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)),y=Math.min(1,Math.max(0,(e.clientY-r.top)/r.height));
+  const h=+$('h').value;setPick(hsv2hex(h,x,1-y),h)}
+let sdrag=false;const Q=$('sq');
+Q.onpointerdown=e=>{sdrag=true;Q.setPointerCapture(e.pointerId);sqPick(e)};
+Q.onpointermove=e=>{if(sdrag)sqPick(e)};Q.onpointerup=Q.onpointercancel=()=>sdrag=false;
+function setMode(m){$('sliders').classList.toggle('hidden',m!==1);$('sqbox').classList.toggle('hidden',m!==2);
+  $('m1').classList.toggle('ghost',m!==1);$('m2').classList.toggle('ghost',m!==2)}
+$('m1').onclick=()=>setMode(1);$('m2').onclick=()=>setMode(2);
+let drag=false;const W=$('wheel');
+W.onpointerdown=e=>{drag=true;W.setPointerCapture(e.pointerId);wheelPick(e)};
+W.onpointermove=e=>{if(drag)wheelPick(e)};W.onpointerup=W.onpointercancel=()=>drag=false;
+$('native').oninput=e=>setPick(e.target.value.toUpperCase());
+$('hex').onchange=e=>{if(hexOK(e.target.value))setPick(norm(e.target.value));else e.target.value=$('mine').textContent};
+
+/* ---------- 出題者檢視 ---------- */
+let peeking=false;
+function hideTarget(){peeking=false;const t=$('tgt');t.style.background='';t.style.color='';t.textContent='目標色隱藏中';$('peek').textContent='出題者：顯示目標'}
+$('peek').onclick=()=>{if(peeking){hideTarget();return}
+  peeking=true;const t=$('tgt');t.style.background=cur.target;t.style.color=textOn(cur.target);t.textContent=cur.target;$('peek').textContent='隱藏目標'};
+
+/* ---------- 猜測 ---------- */
+$('guess').onclick=()=>{
+  const g=$('mine').textContent,sim=similarity(g,cur.target);
+  cur.attempts++;cur.log.push({g,sim});$('cnt').textContent=cur.attempts;
+  $('sim').textContent=sim.toFixed(1)+'%';$('bar').style.width=sim+'%';
+  const d=document.createElement('div');d.innerHTML=`<span class="dot" style="background:${g}"></span>第 ${cur.attempts} 次　${g}　${sim.toFixed(1)}%`;
+  $('log').prepend(d);
+  if(sim>=PASS){
+    rounds.push({target:cur.target,attempts:cur.attempts});
+    $('winmsg').innerHTML=`目標色是 <b>${cur.target}</b>，你用了 <b>${cur.attempts}</b> 次猜中（${sim.toFixed(1)}%）。`;
+    hideTarget();showInfo(cur.target,g);show('win');$('qn').textContent=rounds.length+1;return;
+  }
+  $('msg').textContent=hint(g,cur.target,sim);
+};
+function hint(g,t,sim){
+  const [h1,s1,l1]=hex2hsl(g),[h2,s2,l2]=hex2hsl(t);
+  if(sim<WARN){
+    if(s2>8&&s1>8){let dh=((h2-h1+540)%360)-180;return `色相錯誤：目標大約在色相環上${dh>0?'順時針':'逆時針'}方向 ${Math.round(Math.abs(dh))}° 處。`}
+    return '色相錯誤，差距很大，再換個方向試試。';
+  }
+  const p=[];
+  if(Math.abs(l2-l1)>8)p.push(l2>l1?'明度再亮一點':'明度再暗一點');
+  if(Math.abs(s2-s1)>10)p.push(s2>s1?'飽和度再高一點':'飽和度再低一點');
+  const dh=((h2-h1+540)%360)-180;
+  if(s2>8&&Math.abs(dh)>12)p.push('色相還有偏差');
+  return p.length?'接近中：'+p.join('、')+'。':'很接近了，再微調一下。';
+}
+
+/* ---------- 下一題 / 排名 ---------- */
+function hueName(h,s,l){if(s<8)return l<12?'黑色':l>92?'白色':'灰色（無彩色）';
+  const n=[[15,'紅'],[45,'橙'],[70,'黃'],[95,'黃綠'],[165,'綠'],[200,'青'],[260,'藍'],[290,'紫'],[345,'洋紅']];
+  for(const [m,t] of n)if(h<m)return t+'色系';return '紅色系'}
+function showInfo(t,g){const [r,gg,b]=toRGB(t),[h,s,l]=hex2hsl(t),k=1-Math.max(r,gg,b)/255,cm=v=>k>=1?0:Math.round((1-v/255-k)/(1-k)*100);
+  $('info').innerHTML=`<div class="chip" style="background:${t};color:${textOn(t)}">${t}</div>
+  <table class="info"><tr><td>HEX</td><td>${t}</td></tr><tr><td>RGB</td><td>${r}, ${gg}, ${b}</td></tr>
+  <tr><td>HSL</td><td>色相 ${Math.round(h)}° / 飽和 ${Math.round(s)}% / 明度 ${Math.round(l)}%</td></tr>
+  <tr><td>CMYK</td><td>C ${cm(r)}% / M ${cm(gg)}% / Y ${cm(b)}% / K ${Math.round(k*100)}%（由 RGB 換算，僅供參考）</td></tr>
+  <tr><td>色系</td><td>${hueName(h,s,l)}</td></tr>
+  <tr><td>你的最後選色</td><td><span class="dot" style="display:inline-block;vertical-align:middle;background:${g}"></span> ${g}</td></tr></table>`}
+$('next').onclick=()=>{$('setmsg').textContent='';show('setup')};
+function showRank(){
+  const list=rounds.map((r,i)=>({...r,q:i+1})).sort((a,b)=>a.attempts-b.attempts);
+  let rank=0,prev=null;
+  list.forEach((r,i)=>{if(r.attempts!==prev){rank=i+1;prev=r.attempts}r.rank=rank});
+  $('rows').innerHTML=list.length?list.map(r=>`<tr><td class="r">${r.rank}</td><td>第 ${r.q} 題</td><td><span class="dot" style="display:inline-block;vertical-align:middle;background:${r.target}"></span> ${r.target}</td><td>${r.attempts} 次</td></tr>`).join('')
+    :'<tr><td colspan="4" style="color:var(--mute)">還沒有完成任何題目。</td></tr>';
+  $('avg').textContent=list.length?`共 ${list.length} 題，平均 ${(list.reduce((a,b)=>a+b.attempts,0)/list.length).toFixed(1)} 次。次數越少名次越高，次數相同並列。`:'';
+  show('rank');
+}
+$('again').onclick=()=>{rounds=[];$('qn').textContent=1;show('setup')};
+</script>
+</body>
+</html>
