@@ -184,8 +184,8 @@ function startRound(hex){
 }
 function resetHelpers(){['helpers','hintbtn','swapbtn','hintout','dim'].forEach(k=>$(k).classList.add('hidden'));$('hintout').textContent=''}
 function updateBtns(){const a=cur.attempts;
-  $('hintbtn').classList.toggle('hidden',!(a>10&&!cur.hinted));
-  $('swapbtn').classList.toggle('hidden',!(a>15));
+  $('hintbtn').classList.toggle('hidden',!(a>=10&&!cur.hinted));
+  $('swapbtn').classList.toggle('hidden',!(a>=15));
   $('helpers').classList.toggle('hidden',$('hintbtn').classList.contains('hidden')&&$('swapbtn').classList.contains('hidden'))}
 function ask(text,cb){$('mtext').innerHTML=text;$('modal').classList.remove('hidden');
   $('mok').onclick=()=>{$('modal').classList.add('hidden');cb()};$('mno').onclick=()=>$('modal').classList.add('hidden')}
@@ -193,9 +193,9 @@ $('hintbtn').onclick=()=>ask('使用色相提示會<b>增加 5 次猜測次數</
   const [h,s]=hex2hsl(cur.target);cur.hinted=true;
   if(s<8){$('hintout').textContent='目標是低彩度（接近灰階），色相不影響答案，請專注在明度與彩度。'}
   else{cur.attempts+=5;$('cnt').textContent=cur.attempts;
-    const st=(Math.floor(h)-Math.floor(Math.random()*30)+360)%360,en=(st+30)%360;
-    $('hintout').textContent=`色相提示：目標色相在 ${st}° ～ ${en}° 之間（30° 區間）。已增加 5 次猜測次數。`;
-    $('dim').style.background=`conic-gradient(from ${st}deg,transparent 0deg 30deg,rgba(0,0,0,.72) 30deg 360deg)`;$('dim').classList.remove('hidden');
+    const st=(Math.floor(h)-Math.floor(Math.random()*60)+360)%360,en=(st+60)%360;
+    $('hintout').textContent=`色相提示：目標色相在 ${st}° ～ ${en}° 之間（60° 區間）。已增加 5 次猜測次數。`;
+    $('dim').style.background=`conic-gradient(from ${st}deg,transparent 0deg 60deg,rgba(0,0,0,.72) 60deg 360deg)`;$('dim').classList.remove('hidden');
     const d=document.createElement('div');d.textContent='使用色相提示　+5 次';$('log').prepend(d)}
   $('hintout').classList.remove('hidden');updateBtns()});
 $('swapbtn').onclick=()=>ask('此題將在排行榜上被標記為 <b>DNF</b>，確定要換個顏色嗎？',()=>{
