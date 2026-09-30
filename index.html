@@ -64,7 +64,7 @@ table.info td:first-child{color:var(--mute);width:6em}
 <body>
 <main>
 <h1>猜色遊戲 1A2B</h1>
-<p class="sub">台下喊 HEX，台上憑聽到的代碼調出顏色，相似度 ≥ 90% 過關。</p>
+<p class="sub">台下喊出HEX代碼後，台上憑聽到的代碼調出顏色，相似度 ≥ 90% 過關。</p>
 
 <!-- 出題 -->
 <section id="setup">
@@ -76,7 +76,7 @@ table.info td:first-child{color:var(--mute);width:6em}
     <button class="ghost" id="setc">指定此色出題</button>
   </div>
   <p class="hint" id="setmsg"></p>
-  <button class="ghost" id="finish0">結束遊戲並看排名</button>
+  <button class="ghost" id="finish0">結束遊戲並查看排名</button>
 </section>
 
 <!-- 作答 -->
@@ -86,7 +86,7 @@ table.info td:first-child{color:var(--mute);width:6em}
     <div class="t" id="tgt">目標色隱藏中</div>
     <div id="mine" style="background:#808080">你的選色</div>
   </div>
-  <div class="seg" style="margin-top:12px"><button id="m1">拉桿模式</button><button class="ghost" id="m2">HEX 大方格模式</button></div>
+  <div class="seg" style="margin-top:12px"><button id="m1">拉桿模式</button><button class="ghost" id="m2">HEX模式</button></div>
   <div class="pick">
     <div class="wrap"><div class="wheel" id="wheel" aria-label="色相環，點選或拖曳"></div><div class="mk" id="mk"></div><div class="deg" id="deg">0°</div></div>
     <div class="sl" id="sliders">
